@@ -1,0 +1,838 @@
+<!DOCTYPE html>  <html lang="fr">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>  
+  <title id="pageTitle">Pendule Multijoueur ☀️</title>  
+  <link rel="icon" type="image/png" href="pendule-icon.png" />
+  <style>  
+    /* Styles conservés tels quels (abrégés ici pour clarté) */  
+    .next-button { background: #2ecc71; }  
+    .next-button:hover { background: #27ae60; }  
+    .fullscreen-active .button-row,
+    .fullscreen-active #totalTimesText,
+    .fullscreen-active #elapsedTimeDisplay,
+    .fullscreen-active #downloadBtn,
+    .fullscreen-active #nameInputs,
+    .fullscreen-active #appTitle,
+.fullscreen-active label:not(:has(#voiceToggle)):not(:has(#fullscreenToggle)):not(:has(#jokeToggle)),
+    .fullscreen-active input[type="number"],
+    .fullscreen-active button:not(.player):not(#pauseButton):not(.next-button) {
+    display: none !important;
+    }
+    body {  
+      font-family: sans-serif;  
+      text-align: center;  
+      padding: 2em;  
+      background: #f0f0f0;  
+      color: #000;  
+    }  
+    #appTitle {  
+      font-size: 1.7em;  
+      margin-bottom: 1.2em;  
+      margin-top: 0.5em;  
+    }  
+    .player {  
+      border: 2px solid #ccc;  
+      margin: 1em auto;  
+      padding: 1em;  
+      border-radius: 10px;  
+      background: white;  
+      cursor: pointer;  
+      transition: 0.3s;  
+      width: 300px;  
+      overflow: hidden;  
+    }  
+    .active {  
+      border-color: #2ecc71;  
+      background-color: #eaffea;  
+      box-shadow: 0 0 12px #2ecc71;  
+    }  
+    .negative {  
+      color: red;  
+      font-weight: bold;  
+    }  
+    button {  
+      padding: 1em 2em;  
+      margin: 0.5em;  
+      font-size: 1em;  
+      border: none;  
+      border-radius: 8px;  
+      background: #3498db;  
+      color: white;  
+      cursor: pointer;  
+      transition: background 0.3s;  
+    }  
+    button:hover {  
+      background: #2980b9;  
+    }  
+    .paused {  
+      background: #e74c3c !important;  
+    }  
+    input[type="number"],  
+    input[type="text"] {  
+      width: 120px;  
+      padding: 0.4em;  
+      margin: 0.3em;  
+    }  
+    label {  
+      display: block;  
+      margin: 0.5em 0;  
+    }  
+    .button-row {  
+      display: flex;  
+      justify-content: center;  
+      gap: 1em;  
+      margin-top: 1em;  
+    }  
+.player:active {  
+  opacity: 0.6;  
+}  
+    /* 🌙 Mode sombre */  
+    .dark-mode {  
+      background: #1e1e1e;  
+      color: #f0f0f0;  
+    }  
+    .dark-mode .player {  
+      background: #2c2c2c;  
+      border-color: #555;  
+    }  
+    .dark-mode .active {  
+      border-color: #2ecc71;  
+      background-color: #224422;  
+      box-shadow: 0 0 12px #2ecc71;  
+    }  
+    .dark-mode button {  
+      background: #444;  
+      color: white;  
+    }  
+    .dark-mode button:hover {  
+      background: #666;  
+    }  
+    .dark-mode .next-button {  
+      background: #27ae60;  
+    }  
+    .dark-mode .next-button:hover {  
+      background: #219150;  
+    }  
+    .paused-active {
+    border-color: #e74c3c !important;
+    background-color: #ffe5e5 !important;
+    box-shadow: 0 0 12px #e74c3c !important;
+    }
+    .dark-mode .paused-active {
+    background-color: #4a1c1c !important;
+    }
+.fullscreen-active body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.fullscreen-active #playersContainer {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 80px; /* 🟨 Hauteur réservée pour le bouton plein écran */
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.fullscreen-active .player {
+  flex: 1;
+  height: auto !important;
+    width: auto !important;
+  margin: 0;
+  border-radius: 0;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+}
+.fullscreen-active .player {
+  margin: 0 !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
+  border-left: 0;
+  border-right: 0;
+}
+  </style>  
+</head>  
+<body>  
+  <h1 id="appTitle">Pendule Multijoueur ☀️</h1>    <div>  
+    <label>Nombre de joueurs :  
+      <input type="number" id="playerCount" value="4" min="2" max="8" onchange="generateNameInputs()" />  
+    </label>  
+    <label>Temps initial (secondes) :  
+      <input type="number" id="startTime" value="120" />  
+    </label>  
+    <label>Incrément (secondes) :  
+      <input type="number" id="increment" value="5" />  
+    </label>  
+<div style="display: none;">  //🔳Code masqué
+  <label>Hauteur des cadres (px) :  
+    <input type="number" id="playerHeight" value="110" min="50" max="500" />  
+  </label>
+  <label>Taille du texte (px) :  
+    <input type="number" id="playerFontSize" value="18" min="10" max="80" />  
+  </label>
+</div>
+    <label>  
+      <input type="checkbox" id="resetTimeOption" />  
+      Réinitialiser le temps du joueur
+    </label>  
+    <div id="nameInputs"></div>  
+    <button onclick="startGame()">Démarrer</button>  
+<div style="display: flex; justify-content: center; gap: 1em; align-items: center; margin-top: 1em;">
+  <label>
+
+    <input type="checkbox" id="voiceToggle" checked />
+    Synthèse vocal
+  </label>
+  <label>
+  <input type="checkbox" id="jokeToggle" checked />
+  📢
+  </label>
+  <label>
+    <input type="checkbox" id="fullscreenToggle" onchange="toggleFullscreen()" />
+    Plein écran
+  </label>
+</div>
+  </div>    <div id="playersContainer"></div>    <div class="button-row">  
+    <button class="next-button" onclick="nextPlayer()">Joueur suivant</button>  
+    <button id="pauseButton" onclick="togglePause()">Pause / Reprendre</button>  
+  </div>    <div id="totalTimesText" style="margin-top: 1em;"></div>    <h3 id="elapsedTimeDisplay" style="margin: 1em 0;"></h3>    <!-- 🔻 Bouton caché par défaut -->    <div style="margin: 2em auto;">  
+    <button id="downloadBtn" onclick="downloadCSV()" style="display: none;">📥 Télécharger CSV</button>  
+  </div>  <audio id="switchSound" src="bip.mp3" preload="auto"></audio>
+  <audio id="pauseSound" src="pause.mp3" preload="auto"></audio>
+  <audio id="resumeSound" src="reprise.mp3" preload="auto"></audio>
+
+  <script>  
+    let players = [];  
+    let currentPlayerIndex = 0;  
+    let interval = null;  
+    let paused = false;  
+    let increment = 0;  
+    let totalElapsedSeconds = 0;  
+    
+    const jokePhrases = [
+    "{name}, c’est un tour, pas un conseil d’administration !",
+    "{name}, tu joues ou tu relis toutes les règles depuis le début ?",
+    "{name}, si t’étais une carte, tu serais temps additionnel.",
+    "{name}, les pions prennent la poussière là, faut avancer !",
+    "{name}, on fait une partie ou une retraite spirituelle ?",
+    "{name}, à ce rythme, on finit la partie demain matin.",
+    "{name}, t’attends une carte magique qui n’existe pas ou quoi ?",
+    "{name}, même le sablier est parti se coucher.",
+    "{name}, on est en train de jouer, pas de réciter du Shakespeare.",
+    "{name}, faut qu’on commande une pizza entre tes tours ou c’est bon ?",
+    "{name}, c’est plus un jeu de société, c’est un marathon mental.",
+    "{name}, les autres joueurs sont passés par tous les stades du deuil.",
+    "{name}, j’ai eu le temps d’apprendre les règles d’un autre jeu.",
+    "{name}, même les meeples te regardent bizarrement.",
+    "{name}, on aurait dû lancer une partie en ligne pendant que t’hésites.",
+    "{name}, on t’a dit de jouer, pas de méditer sur le plateau.",
+    "{name}, on joue à 'Risk', pas à 'Risque de vieillesse'.",
+    "{name}, ton tour c’est comme un hiver dans Game of Thrones : long et imprévisible.",
+    "{name}, le plateau a changé de saison depuis ton tour.",
+    "{name}, j’ai eu le temps de lire la règle en trois langues.",
+    "{name}, même le pion adverse commence à s’endormir.",
+    "{name}, on dirait que tu planifies une invasion mondiale.",
+    "{name}, tu cherches une faille dans les règles ou tu joues ?",
+    "{name}, on est plusieurs à mourir de vieillesse entre tes tours.",
+    "{name}, si t’es aussi lent en vrai, t’as jamais fini un Monopoly.",
+    "{name}, à ce niveau de lenteur, tu pourrais être une extension du jeu.",
+    "{name}, on t’offre un sablier XXL pour ton prochain tour",
+    "{name}, on joue au tour par tour, pas au siècle par siècle.",
+    "{name}, tu médites ou tu planifies un coup d’échecs à 12 coups ?",
+    "{name}, tu veux une loupe pour mieux voir le plateau ou une boussole pour t’y retrouver ?",
+    "{name}, même le dé a roulé plus vite que toi.",
+    "{name}, on a le temps de faire une pause café entre tes actions.",
+    "{name}, si tu vas aussi lentement au Monopoly, tu dois encore être à la case départ.",
+    "{name}, t’es sûr que tu joues à ce jeu et pas à une partie parallèle dans ta tête ?",
+    "{name}, même les figurines se demandent si t’es AFK.",
+    "{name}, tu veux qu’on t’écrive un tutoriel ou un poème ?",
+    "{name}, on a eu le temps de faire une autre partie... dans nos têtes.",
+    "{name}, j’ai connu des chargements de jeux PS1 plus rapides.",
+    "{name}, tu joues en mode escargot furtif ou c’est pour faire durer le suspense ?",
+    "{name}, ton tour, c’est un DLC qu’on doit télécharger ?",
+    "{name}, je crois que la table a pris racine pendant ton tour.",
+    "{name}, à ce rythme, on finira quand le soleil se recouchera.",
+    "{name}, on pensait avoir tout vu, mais là tu repousses les limites du jeu lent.",
+    "{name}, si tu gagnes, ce sera au concours du plus long tour.",
+    "{name}, on aurait pu imprimer les règles et les encadrer en attendant.",
+    "{name}, si t’étais un jeu, ce serait une simulation de l’attente.",
+    "{name}, t’as pas assez de points d’action pour réfléchir autant.",
+    "{name}, même les zombies de Zombicide seraient déjà passés.",
+    "{name}, on dirait un tour de Terraforming Mars sans automate.",
+    "{name}, on joue à Dixit ou à 'Dix minutes pour un tour' ?",
+    "{name}, faut pas jouer avec le manuel en main.",
+    "{name}, le plateau t’a pas demandé une dissertation.",
+    "{name}, si c’était une partie d’Agricola, t’aurais déjà raté trois récoltes.",
+    "{name}, même à Through the Ages ça va plus vite que ça.",
+    "{name}, ton tour a besoin d’un sablier... de 30 minutes.",
+    "{name}, si on avait un meeple pour chaque seconde perdue, on ferait un army game.",
+    "{name}, même la Reine rouge aurait le temps de repeindre ses cartes.",
+    "{name}, y’a pas de mode 'slow motion' dans ce jeu.",
+    "{name}, ton tour dure plus longtemps qu’une partie de Diplomacy.",
+    "{name}, t’as transformé un jeu rapide en legacy sans sauvegarde.",
+    "{name}, même les figurines ont pris la poussière en t’attendant.",
+    "{name}, t’as lancé une quête secondaire ou tu joues au jeu principal ?",
+    "{name}, ce jeu n’a pas de pause, sauf toi.",
+    "{name}, ton tour est une mécanique de jeu à lui seul.",
+    "{name}, si c’était Catan, t’aurais déjà construit une route vers la fin de partie.",
+    "{name}, t’essayes de voler la victoire... une seconde à la fois.",
+    "{name}, la partie s’appelle 'jeu de société', pas 'monologue stratégique'.",
+    "{name}, t’es sûr qu’on joue pas à Twilight Imperium sans le savoir ?",
+    "{name}, je crois que t’es coincé dans une boucle temporelle ludique.",
+    "{name}, la seule ressource que tu consommes, c’est notre patience."
+    ];
+    
+    let lastJokeIndexes = [];
+    const MAX_RECENT_JOKES = 5; // Nombre de blagues récentes à éviter
+function tellJoke(player) {
+  const jokeEnabled = document.getElementById("jokeToggle")?.checked;
+  const voiceEnabled = document.getElementById("voiceToggle")?.checked;
+  if (!jokeEnabled || !voiceEnabled) return;
+
+  let availableIndexes = jokePhrases
+    .map((_, i) => i)
+    .filter(i => !lastJokeIndexes.includes(i));
+
+  // S'il ne reste plus beaucoup de choix, on réinitialise
+  if (availableIndexes.length === 0) {
+    lastJokeIndexes = [];
+    availableIndexes = jokePhrases.map((_, i) => i);
+  }
+
+  const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+  lastJokeIndexes.push(randomIndex);
+
+  // On garde les N derniers uniquement
+  if (lastJokeIndexes.length > MAX_RECENT_JOKES) {
+    lastJokeIndexes.shift();
+  }
+
+  const joke = jokePhrases[randomIndex].replace("{name}", player.name);
+  speak(joke);
+}
+  
+    function formatTime(seconds) {  
+      const sign = seconds < 0 ? "-" : "";  
+      const abs = Math.abs(seconds);  
+      const min = Math.floor(abs / 60);  
+      const sec = abs % 60;  
+      return `${sign}${min}:${sec.toString().padStart(2, '0')}`;  
+    }  
+  
+    function formatHHMMSS(totalSeconds) {  
+      const hours = Math.floor(totalSeconds / 3600);  
+      const minutes = Math.floor((totalSeconds % 3600) / 60);  
+      const seconds = totalSeconds % 60;  
+      return `${hours.toString().padStart(2, '0')} : ${minutes.toString().padStart(2, '0')} : ${seconds.toString().padStart(2, '0')}`;  
+    }  
+  
+    function updateElapsedTimeDisplay() {  
+      const display = document.getElementById("elapsedTimeDisplay");  
+      display.textContent = `⏱ Temps total : ${formatHHMMSS(totalElapsedSeconds)}`;  
+    }  
+  
+function updateDisplay() {
+  players.forEach((player, i) => {
+    const timeEl = document.getElementById("time" + i);
+    timeEl.textContent = formatTime(player.time);
+    timeEl.classList.toggle("negative", player.time < 0);
+
+    // ⚠️ Incrémenter si on passe en négatif pour la première fois de ce cycle
+if (player.time < 0 && !player.wasNegative) {
+  player.negativeCount = (player.negativeCount || 0) + 1;
+  player.wasNegative = true;
+  tellJoke(player); // 🔥 Ajout de la blague vocale ici
+} else if (player.time >= 0) {
+  player.wasNegative = false;
+}
+
+    // ✴️ Mettre à jour le nom avec des étoiles rouges
+const nameEl = document.getElementById("name" + i);
+nameEl.textContent = player.name;
+  });
+}
+  
+function updateActivePlayer() {
+  players.forEach((p, i) => {
+    const isActive = i === currentPlayerIndex;
+    p.element.classList.toggle("active", isActive && !paused);
+    p.element.classList.toggle("paused-active", isActive && paused);
+  });
+}
+  
+function updateTotalTimesText() {
+  const container = document.getElementById("totalTimesText");
+  const showPenalties = document.getElementById("resetTimeOption").checked;
+
+  container.innerHTML = players.map(p => {
+    const penaltyCount = p.negativeCount || 0;
+    const penaltyDisplay = showPenalties && penaltyCount > 0
+      ? `  -  Temps écoulé: ${penaltyCount}`
+      : "";
+    return `<div><strong>${p.name}</strong> : ${formatTime(p.totalTime || 0)}${penaltyDisplay}</div>`;
+  }).join("");
+}
+  
+    function startTimer() {  
+      clearInterval(interval);  
+      interval = setInterval(() => {  
+        if (!paused) {  
+          const player = players[currentPlayerIndex];  
+          player.time--;  
+          player.totalTime = (player.totalTime || 0) + 1;  
+          totalElapsedSeconds++;  
+          updateDisplay();  
+          updateTotalTimesText();  
+          updateElapsedTimeDisplay();  
+        }  
+      }, 1000);  
+    }  
+
+function speak(text) {
+  const voiceEnabled = document.getElementById("voiceToggle")?.checked;
+  if (!voiceEnabled) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "fr-FR";
+  speechSynthesis.speak(utterance);
+}
+
+    function nextPlayer() {  
+      if (players.length === 0) return;  
+const voiceEnabled = document.getElementById("voiceToggle").checked;
+if (!voiceEnabled) {
+  const sound = document.getElementById("switchSound");
+  sound.currentTime = 0;
+  sound.play();
+}
+      const resetEnabled = document.getElementById("resetTimeOption").checked;  
+      const prevPlayer = players[currentPlayerIndex];  
+      prevPlayer.savedTime = prevPlayer.time;  
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;  
+      const currentPlayer = players[currentPlayerIndex];  
+if (resetEnabled) {
+  // N’ajoute une pénalité QUE s’il vient juste de passer négatif (et qu’il ne l’était pas déjà)
+  if (currentPlayer.time < 0 && !currentPlayer.wasNegative) {
+    currentPlayer.negativeCount = (currentPlayer.negativeCount || 0) + 1;
+    currentPlayer.wasNegative = true;
+  }
+  currentPlayer.time = currentPlayer.initialTime;
+  currentPlayer.wasNegative = false; // Reset la détection pour le nouveau cycle
+} else {
+  prevPlayer.time += increment;
+  if (prevPlayer.time < 0 && !prevPlayer.wasNegative) {
+    prevPlayer.negativeCount = (prevPlayer.negativeCount || 0) + 1;
+    prevPlayer.wasNegative = true;
+  } else if (prevPlayer.time >= 0) {
+    prevPlayer.wasNegative = false;
+  }
+}
+      updateActivePlayer();  
+      updateDisplay();  
+      speak("À " + currentPlayer.name);
+    }  
+  
+function togglePause() {
+  paused = !paused;
+  const pauseBtn = document.getElementById("pauseButton");
+  pauseBtn.classList.toggle("paused", paused);
+  updateActivePlayer();
+
+  // 🔊 Son selon pause ou reprise
+  const pauseSound = document.getElementById("pauseSound");
+  const resumeSound = document.getElementById("resumeSound");
+
+  if (paused) {
+    pauseSound.currentTime = 0;
+    pauseSound.play();
+  } else {
+    resumeSound.currentTime = 0;
+    resumeSound.play();
+  }
+}
+  
+    function generateNameInputs() {  
+      const count = parseInt(document.getElementById("playerCount").value);  
+      const container = document.getElementById("nameInputs");  
+      container.innerHTML = "";  
+      for (let i = 0; i < count; i++) {  
+        const input = document.createElement("input");  
+        input.type = "text";  
+        input.placeholder = `Nom du joueur ${i + 1}`;  
+        input.id = "playerName" + i;  
+  
+        input.addEventListener("input", () => {  
+          const newName = input.value.trim() || `Joueur ${i + 1}`;  
+          const nameEl = document.getElementById("name" + i);  
+          if (nameEl) nameEl.textContent = newName;  
+          if (players[i]) players[i].name = newName;  
+        });  
+  
+        container.appendChild(input);  
+      }  
+    }  
+  
+    function updatePlayerHeights() {  
+      const height = parseInt(document.getElementById("playerHeight").value);  
+      players.forEach(p => {  
+        p.element.style.height = height + "px";  
+      });  
+    }  
+  
+    function updatePlayerFontSize() {  
+      const size = parseInt(document.getElementById("playerFontSize").value);  
+      players.forEach(p => {  
+        p.element.style.fontSize = size + "px";  
+      });  
+    }  
+  
+    function startGame() {  
+
+      clearInterval(interval);  
+      document.getElementById("playersContainer").innerHTML = "";  
+      players = [];  
+      totalElapsedSeconds = 0;  
+      updateElapsedTimeDisplay();  
+  
+      const count = parseInt(document.getElementById("playerCount").value);  
+      const startTime = parseInt(document.getElementById("startTime").value);  
+      increment = parseInt(document.getElementById("increment").value);  
+      const height = parseInt(document.getElementById("playerHeight").value);  
+      const fontSize = parseInt(document.getElementById("playerFontSize").value);  
+      const newIncrement = parseInt(document.getElementById("increment").value);
+      if (!isNaN(newIncrement)) increment = newIncrement;
+  
+for (let i = 0; i < count; i++) {  
+  const nameInput = document.getElementById("playerName" + i);  
+  const name = nameInput && nameInput.value.trim() !== "" ? nameInput.value.trim() : `Joueur ${i + 1}`;  
+  const div = document.createElement("div");  
+  div.className = "player";  
+  div.id = "player" + i;  
+  div.draggable = true;  
+  div.style.height = height + "px";  
+  div.style.fontSize = fontSize + "px";  
+  div.innerHTML = `<h2 id="name${i}">${name}</h2><p id="time${i}">${formatTime(startTime)}</p>`;  
+  
+  // 🔁 Drag & Drop handlers  
+  div.addEventListener("dragstart", (e) => {  
+    e.dataTransfer.setData("text/plain", i);  
+  });  
+  
+  div.addEventListener("dragover", (e) => {  
+    e.preventDefault();  
+  });  
+  
+  div.addEventListener("drop", (e) => {  
+    e.preventDefault();  
+    const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));  
+    const toIndex = i;  
+    if (fromIndex === toIndex) return;  
+  
+    const container = document.getElementById("playersContainer");  
+    const fromEl = players[fromIndex].element;  
+    const toEl = players[toIndex].element;  
+  
+    if (fromIndex < toIndex) {  
+      container.insertBefore(fromEl, toEl.nextSibling);  
+    } else {  
+      container.insertBefore(fromEl, toEl);  
+    }  
+  
+    // Réorganiser le tableau "players"  
+    const movedPlayer = players.splice(fromIndex, 1)[0];  
+    players.splice(toIndex, 0, movedPlayer);  
+  
+    // Réindexer  
+    players.forEach((p, idx) => {  
+      p.element.id = "player" + idx;  
+      p.element.querySelector("h2").id = "name" + idx;  
+      p.element.querySelector("p").id = "time" + idx;  
+    });  
+  
+    updateDisplay();  
+    updateActivePlayer();  
+    updateTotalTimesText();  
+    saveGameState();  
+  });  
+  
+div.addEventListener("click", () => {  
+
+  if (!paused) {  
+    nextPlayer();  
+  }  
+});  
+
+  
+  document.getElementById("playersContainer").appendChild(div);  
+  players.push({
+  name,
+  time: startTime,
+  initialTime: startTime,
+  savedTime: startTime,
+  totalTime: 0,
+  negativeCount: 0,
+  wasNegative: false,
+  element: div
+  });
+}  
+  
+      currentPlayerIndex = 0;  
+      updateDisplay();  
+      updateActivePlayer();  
+      startTimer();  
+      updatePlayerHeights();  
+      updatePlayerFontSize();  
+      updateTotalTimesText();  
+  
+      // ✅ Afficher le bouton CSV après lancement  
+      document.getElementById("downloadBtn").style.display = "inline-block";  
+      setInterval(saveGameState, 1000); // Sauvegarde chaque seconde  
+    }  
+  
+function toggleFullscreen() {
+  const checkbox = document.getElementById("fullscreenToggle");
+  if (checkbox.checked) {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+}
+  
+document.addEventListener("fullscreenchange", () => {
+  const isFullscreen = !!document.fullscreenElement;
+  document.getElementById("fullscreenToggle").checked = isFullscreen;
+
+  if (isFullscreen) {
+    document.body.classList.add("fullscreen-active");
+
+    // 🔼 Augmenter la hauteur des cadres
+const containerHeight = window.innerHeight;
+const visiblePlayers = players.length;
+const padding = 85;
+const computedHeight = Math.floor(containerHeight / visiblePlayers) - padding;
+
+players.forEach(p => {
+  p.element.style.height = `${computedHeight}px`;
+});
+
+    // 🔽 Supprimer les marges du body
+    document.body.style.marginTop = "0";
+    document.body.style.marginBottom = "0";
+    document.body.style.paddingTop = "0";
+    document.body.style.paddingBottom = "0";
+
+  } else {
+    document.body.classList.remove("fullscreen-active");
+
+    // 🔽 Revenir à la hauteur définie par l'utilisateur
+    const height = parseInt(document.getElementById("playerHeight").value);
+    players.forEach(p => {
+      p.element.style.height = height + "px";
+    });
+
+    // 🔙 Restaurer les marges (si besoin)
+    document.body.style.marginTop = "";
+    document.body.style.marginBottom = "";
+    document.body.style.paddingTop = "1em";
+    document.body.style.paddingBottom = "1em";
+  }
+});
+  
+    document.getElementById("playerHeight").addEventListener("input", updatePlayerHeights);  
+    document.getElementById("playerFontSize").addEventListener("input", updatePlayerFontSize);  
+  
+    // 🌙 Gestion du mode sombre  
+    function applyDarkMode(isDark) {  
+      const body = document.body;  
+      const title = document.getElementById("appTitle");  
+      const pageTitle = document.getElementById("pageTitle");  
+  
+      if (isDark) {  
+        body.classList.add("dark-mode");  
+        title.textContent = "Pendule Multijoueur 🌙";  
+        pageTitle.textContent = "Pendule Multijoueur 🌙";  
+      } else {  
+        body.classList.remove("dark-mode");  
+        title.textContent = "Pendule Multijoueur ☀️";  
+        pageTitle.textContent = "Pendule Multijoueur ☀️";  
+      }  
+  
+      localStorage.setItem("darkMode", isDark ? "true" : "false");  
+    }  
+  
+    document.getElementById("appTitle").addEventListener("click", () => {  
+      const isDark = !document.body.classList.contains("dark-mode");  
+      applyDarkMode(isDark);  
+    });  
+  
+window.addEventListener("DOMContentLoaded", () => {  
+  generateNameInputs();  
+  const darkPref = localStorage.getItem("darkMode") === "true";  
+  applyDarkMode(darkPref);  
+  restoreGameState(); // <--- 🔁 Restauration ici  
+  
+  document.getElementById("startTime").addEventListener("input", () => {  
+  document.getElementById("increment").addEventListener("input", () => {
+  const newIncrement = parseInt(document.getElementById("increment").value);
+  if (!isNaN(newIncrement)) {
+  increment = newIncrement;
+  saveGameState(); // Sauvegarde l'incrément dans localStorage
+  }
+  });
+    const newInitialTime = parseInt(document.getElementById("startTime").value);  
+    players.forEach((p, i) => {  
+      p.initialTime = newInitialTime;  
+      // p.time = newInitialTime;  
+      // document.getElementById("time" + i).textContent = formatTime(p.time);  
+      document.getElementById("voiceToggle").addEventListener("change", saveGameState);
+            document.getElementById("jokeToggle").addEventListener("change", saveGameState);
+    });  
+  });  
+});  
+document.getElementById("increment").addEventListener("input", () => {
+  const val = parseInt(document.getElementById("increment").value);
+  if (!isNaN(val)) {
+    increment = val;
+    saveGameState();
+  }
+});
+      
+    function restoreGameState() {  
+    const saved = localStorage.getItem("penduleState");  
+    if (!saved) return;  
+      
+    const state = JSON.parse(saved);  
+    if (!state.players || state.players.length === 0) return;  
+      
+    clearInterval(interval);  
+    document.getElementById("playersContainer").innerHTML = "";  
+    players = [];  
+    increment = state.increment;  
+    currentPlayerIndex = state.currentPlayerIndex || 0;  
+    totalElapsedSeconds = state.totalElapsedSeconds || 0;  
+    document.getElementById("resetTimeOption").checked = state.resetEnabled;  
+document.getElementById("voiceToggle").checked = state.voiceEnabled ?? true;
+document.getElementById("jokeToggle").checked = state.jokeEnabled ?? true;
+    document.getElementById("playerCount").value = state.players.length;  
+    generateNameInputs();  
+    document.getElementById("startTime").value = state.startTime || 180;  
+if ("increment" in state) {
+  increment = parseInt(state.increment);
+} else {
+  increment = 120;
+}
+document.getElementById("increment").value = increment;
+document.getElementById("increment").value = increment;
+    document.getElementById("playerHeight").value = state.playerHeight || 110;  
+    document.getElementById("playerFontSize").value = state.playerFontSize || 18;  
+    paused = !!state.paused;  
+    if (paused) {  
+    document.getElementById("pauseButton").classList.add("paused");  
+    }  
+      
+state.players.forEach((data, i) => {
+  const input = document.getElementById("playerName" + i);
+  input.value = data.name;
+
+  const div = document.createElement("div");
+  div.className = "player";
+  div.id = "player" + i;
+  div.innerHTML = `<h2 id="name${i}">${data.name}</h2><p id="time${i}">${formatTime(data.time)}</p>`;
+
+  div.addEventListener("click", () => {
+    if (!paused) {
+      nextPlayer();
+    }
+  });
+
+  document.getElementById("playersContainer").appendChild(div);
+
+  players.push({
+    name: data.name,
+    time: data.time,
+    initialTime: data.initialTime,
+    savedTime: data.savedTime,
+    totalTime: data.totalTime || 0,
+    negativeCount: data.negativeCount || 0,
+    wasNegative: data.wasNegative || false,
+    element: div
+  });
+});
+      
+    updatePlayerHeights();  
+    updatePlayerFontSize();  
+    updateDisplay();  
+    updateActivePlayer();  
+    updateTotalTimesText();  
+    updateElapsedTimeDisplay();  
+    startTimer();  
+      
+    document.getElementById("downloadBtn").style.display = "inline-block";  
+    setInterval(saveGameState, 1000);  
+    }  
+      
+  
+function downloadCSV() {  
+  if (players.length === 0) return;  
+  
+  let csv = "Temps total par joueur (en secondes)\n";  
+  csv += players.map(p => `"${p.name}"`).join(",") + "\n";  
+  csv += players.map(p => p.totalTime || 0).join(",") + "\n";  
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });  
+  const url = URL.createObjectURL(blob);  
+  const link = document.createElement("a");  
+  link.setAttribute("href", url);  
+  link.setAttribute("download", "temps_par_joueur.csv");  
+  document.body.appendChild(link);  
+  link.click();  
+  document.body.removeChild(link);  
+}  
+  
+// ✅ Corrigé : fonction maintenant accessible globalement  
+function saveGameState() {
+  const state = {
+    players: players.map(p => ({
+      name: p.name,
+      time: p.time,
+      initialTime: p.initialTime,
+      savedTime: p.savedTime,
+      totalTime: p.totalTime,
+      negativeCount: p.negativeCount || 0,
+      wasNegative: p.wasNegative || false
+    })),
+    currentPlayerIndex,
+    totalElapsedSeconds,
+    increment,
+    resetEnabled: document.getElementById("resetTimeOption").checked,
+    startTime: parseInt(document.getElementById("startTime").value),
+    playerHeight: parseInt(document.getElementById("playerHeight").value),
+playerFontSize: parseInt(document.getElementById("playerFontSize").value),
+    paused,
+voiceEnabled: document.getElementById("voiceToggle").checked,
+jokeEnabled: document.getElementById("jokeToggle").checked
+    
+    
+  };
+  localStorage.setItem("penduleState", JSON.stringify(state));
+}
+      // 📱 Pause avec deux doigts (touchscreen)
+      document.addEventListener("touchstart", function (e) {
+      if (e.touches.length === 2) {
+      togglePause();
+      }
+      });
+  </script>  </body>  
+</html>  
