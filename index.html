@@ -2,7 +2,7 @@
 <head>  
   <meta charset="UTF-8" />  
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>  
-  <title id="pageTitle">Pendule Multijoueur ☀️</title>  
+  <title id="pageTitle">Pendule.netlify.app ☀️</title>  
   <link rel="icon" type="image/png" href="pendule-icon.png" />
   <style>  
     /* Styles conservés tels quels (abrégés ici pour clarté) */  
@@ -161,7 +161,7 @@
   </style>  
 </head>  
 <body>  
-  <h1 id="appTitle">Pendule Multijoueur ☀️</h1>    <div>  
+  <h1 id="appTitle">Pendule.netlify.app ☀️</h1>    <div>  
     <label>Nombre de joueurs :  
       <input type="number" id="playerCount" value="4" min="2" max="8" onchange="generateNameInputs()" />  
     </label>  
@@ -661,12 +661,12 @@ players.forEach(p => {
   
       if (isDark) {  
         body.classList.add("dark-mode");  
-        title.textContent = "Pendule Multijoueur 🌙";  
-        pageTitle.textContent = "Pendule Multijoueur 🌙";  
+        title.textContent = "Pendule.netlify.app 🌙";  
+        pageTitle.textContent = "Pendule.netlify.app 🌙";  
       } else {  
         body.classList.remove("dark-mode");  
-        title.textContent = "Pendule Multijoueur ☀️";  
-        pageTitle.textContent = "Pendule Multijoueur ☀️";  
+        title.textContent = "Pendule.netlify.app ☀️";  
+        pageTitle.textContent = "Pendule.netlify.app ☀️";  
       }  
   
       localStorage.setItem("darkMode", isDark ? "true" : "false");  
