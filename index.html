@@ -126,6 +126,13 @@
     .dark-mode .paused-active {
     background-color: #4a1c1c !important;
     }
+    .next-hint,
+    .pause-hint {
+    font-size: 0.6em;  /* deux fois plus petit */
+    opacity: 0.5;      /* 50 % transparent */
+    display: block;
+    margin-top: 0.4em;
+    }
 .fullscreen-active body {
   margin: 0;
   padding: 0;
@@ -206,8 +213,16 @@
   </label>
 </div>
   </div>    <div id="playersContainer"></div>    <div class="button-row">  
-    <button class="next-button" onclick="nextPlayer()">Joueur suivant</button>  
-    <button id="pauseButton" onclick="togglePause()">Pause / Reprendre</button>  
+<button class="next-button" onclick="nextPlayer()">
+  Joueur suivant
+  <br>
+  <span class="next-hint">Appuie sur l'un des cadres</span>
+</button>
+<button id="pauseButton" onclick="togglePause()">
+  Pause / Reprendre
+  <br>
+  <span class="pause-hint">Deux appuis simultanés</span>
+</button>
   </div>    <div id="totalTimesText" style="margin-top: 1em;"></div>    <h3 id="elapsedTimeDisplay" style="margin: 1em 0;"></h3>    <!-- 🔻 Bouton caché par défaut -->    <div style="margin: 2em auto;">  
     <button id="downloadBtn" onclick="downloadCSV()" style="display: none;">📥 Télécharger CSV</button>  
   </div>  <audio id="switchSound" src="bip.mp3" preload="auto"></audio>
