@@ -31,6 +31,10 @@
       margin-bottom: 1.2em;  
       margin-top: 0.5em;  
     }  
+    button.start-button {
+    padding-top: 0.2em;
+    line-height: 2.1em;
+    }
     .player {  
       border: 2px solid #ccc;  
       margin: 1em auto;  
@@ -184,7 +188,8 @@
       Réinitialiser le temps du joueur
     </label>  
     <div id="nameInputs"></div>  
-    <button onclick="startGame()">Démarrer</button>  
+<button class="start-button" onclick="startGame()">Nouvelle partie</button>
+<p id="startHint" style="font-size: 0.6em; opacity: 0.5; margin-top: -2.8em;">Appuie deux fois pour confirmer</p>
 <div style="display: flex; justify-content: center; gap: 1em; align-items: center; margin-top: 1em;">
   <label>
 
